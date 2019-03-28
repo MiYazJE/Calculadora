@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 import dominio.Calculadora;
+import excepciones.DivisionPorCeroExcepcion;
 
 import javax.swing.GroupLayout.Alignment;
 
@@ -44,7 +45,7 @@ public class MenuPpal extends JFrame implements KeyListener {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		
 		// TAMANYO
-		setBounds(100, 100, 326, 500);
+		setBounds(100, 100, 354, 482);
 		
 		// VENTANA ESTATICA
 		setResizable(false);
@@ -111,12 +112,12 @@ public class MenuPpal extends JFrame implements KeyListener {
 		textResultado.setText("0");
 		textResultado.setColumns(10);
 		GroupLayout gl_panel_Top = new GroupLayout(panel_Top);
-		gl_panel_Top.setHorizontalGroup (
+		gl_panel_Top.setHorizontalGroup(
 			gl_panel_Top.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_panel_Top.createSequentialGroup()
-					.addGap(20)
-					.addComponent(textResultado, GroupLayout.PREFERRED_SIZE, 271, GroupLayout.PREFERRED_SIZE)
-					.addContainerGap(26, Short.MAX_VALUE))
+					.addGap(26)
+					.addComponent(textResultado, GroupLayout.PREFERRED_SIZE, 280, GroupLayout.PREFERRED_SIZE)
+					.addContainerGap(32, Short.MAX_VALUE))
 		);
 		gl_panel_Top.setVerticalGroup(
 			gl_panel_Top.createParallelGroup(Alignment.LEADING)
@@ -471,11 +472,10 @@ public class MenuPpal extends JFrame implements KeyListener {
 		button_MemoryRetroceder.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				retroceder();
-				textResultado.setText(imprimir());
 			}
 		});
 		
-		
+		// reset
 		button_Clear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				calculadora.reset();
@@ -483,51 +483,314 @@ public class MenuPpal extends JFrame implements KeyListener {
 			}
 		});
 		
-	}
+		// dividir
+		button_Dividir.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					asignarOperacion("/");
+				} catch (DivisionPorCeroExcepcion e1) {
+					textResultado.setText("No se puede dividir por 0");
+					clear();
+				}
+			}
+		});
+		
+		// sumar
+		button_Sumar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					asignarOperacion("+");
+				} catch (DivisionPorCeroExcepcion e1) {
+				}
+			}
+		});
+		
+		// restar
+		button_Restar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					asignarOperacion("-");
+				} catch (DivisionPorCeroExcepcion e1) {
+					
+				}
+			}
+		});
+		
+		// multiplicar
+		button_Multiplicar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					asignarOperacion("*");
+				} catch (DivisionPorCeroExcepcion e1) {
+					
+				}
+			}
+		});
+		
+		// resultado
+		button_Resultado.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					calcular();
+					textResultado.setText(imprimir());
+				} catch (DivisionPorCeroExcepcion e1) {
+					textResultado.setText("No se puede dividir por 0");
+					clear();
+				}
+			}
+		});
+		
+		// decimal
+		button_Decimal.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				insertarNumero(".");
+			}
+		});
 
+		// cambiar signo
+		button_CambiarSigno.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				cambiarSigno();
+				textResultado.setText(imprimir());
+			}
+		});
+		
+		
+	}
 	
 	
-	private void insertarNumero(String numero){
-		if (numero.equals("0") && calculadora.getNumActual().equals("0")) {
+	
+	private void insertarNumero(String numero) {
+		
+		// Si despues de un calculo seguidamente introducimos un numero 
+		// no se concatena al resultado mostrado
+		// ej -> 1 + 2 = 3 (introduzco) 5 debe respetar 3 + 5
+		// Si no contemplo esto los numeros introducidos despues del resultado de una operacion
+		// se concatenan al resultado
+		if (calculadora.getMostrar() && calculadora.getNumActual().equals("0") && 
+			calculadora.getNum1() != 0) {
+			
+			calculadora.setMostrar(false);
+		}
+		
+		if (numero.equals(".") ) {
+			
+			// Comprobamos si ya contiene una coma para no volver a introducirla
+			// Comprobar tambien si no tiene el signo negativo justo delante
+			if (!calculadora.getNumActual().contains(".")) {
+				if (calculadora.getNumActual().contains("-") && 
+				    calculadora.getNumActual().length() == 1) {
+					
+				}
+				else {
+					// Si asignamos un decimal sin antes haber introducido un numero se presupone
+					// que se inserta un 0 
+					// ej -> 5 + ,54 
+					// res-> 5 + 0,54
+					if (calculadora.getNumActual().isEmpty()) {
+						calculadora.setNumActual("0");
+					}
+					calculadora.concatenar(numero);
+					textResultado.setText(imprimir());
+				}
+			}
+			
+		}
+		else if (numero.equals("-")) {
+			
+			if (!calculadora.getNumActual().contains("-")) {
+				calculadora.setNumActual("-");
+			}
+			
+			calculadora.setMostrar(false);
+		}
+		else {
+			
+			// Si el numActual vale "0" seteamos su valor a "" para que no concatene los siguientes valores
+			// ejMal:  numActual = 0 + 1 -> 01
+			// ejBien: numActual = 0 + 1 -> 1
+			if (calculadora.getNumActual().equals("0")) calculadora.setNumActual("");
+			calculadora.concatenar(numero);
+			
+			calculadora.setMostrar(false);
+		}
+		
+		textResultado.requestFocus();
+	}
+	
+	private void asignarOperacion(String operacion) throws DivisionPorCeroExcepcion {
+
+		if ((operacion.equals("-")) && calculadora.getNumActual().equals("0") && calculadora.getNum1() != 0) {
+			if (operacion.equals("-")) {
+				insertarNumero(operacion);
+				textResultado.setText(imprimir());
+			}
+		}
+		else {
+			
+			try {
+				
+				// Si no existe ningun signo todavia num1 = numActual else num2 = numActual
+				if (calculadora.getOperacion().isEmpty()) {
+					calculadora.setNum1(Double.parseDouble(calculadora.getNumActual()));
+				}
+				else calculadora.setNum2(Double.parseDouble(calculadora.getNumActual()));
+				
+				// Si los 2 numeros estan modificados hay que operar antes -> ej: 1 + 2 + 1 
+				// de la segunda operacion									        3 + 1
+				if (!calculadora.getOperacion().isEmpty()) {
+					
+					calcular();
+					calculadora.setOperacion(operacion);
+					
+					String num = parsearNumero(String.valueOf(calculadora.getNum1()));
+					calculadora.setNumActual(num);
+					textResultado.setText(imprimir());
+					
+					calculadora.setNumActual("0");
+					calculadora.setMostrar(true);
+				}
+				else {
+					// Si no existe ningun signo todavia lo agregamos y refrescamos el numActual
+					// para el siguiente numero a leer
+					calculadora.setOperacion(operacion);
+					calculadora.setNumActual("0");
+					calculadora.setMostrar(false);
+				}
+				
+			}
+			catch (NumberFormatException e) {
+				calculadora.setOperacion(operacion);
+			}
+			
+		}
+		
+		textResultado.requestFocus();
+	}
+	
+	private void calcular() throws DivisionPorCeroExcepcion {
+		 
+		// Si agregamos un numero y un operando hay que calcular
+		// ej -> 5 + = = = =    5 * = = = =    5 - = = = =      5 / = = = =  
+		// res ->  5 10 15 20     25 125 625     0 -5 -10 -15     1 0,2 0,04 0,008
+		if (!calculadora.getOperacion().isEmpty() && calculadora.getNum1() != 0 && calculadora.getNumActual().isEmpty()) {
+			
+			switch (calculadora.getOperacion()) {
+			case "+": 
+				calculadora.setNum1(calculadora.getNum1() + calculadora.getNum2());
+				break;
+			case "-":
+				calculadora.setNum1(calculadora.getNum1() - calculadora.getNum2());
+				break;
+			case "*":
+				calculadora.setNum1(calculadora.getNum1() * calculadora.getNum2());
+				break;
+			case "/":
+				if (calculadora.getNum1() == 0) throw new DivisionPorCeroExcepcion();
+				calculadora.setNum1(calculadora.getNum1() / calculadora.getNum2());
+				break;
+			}
+			
+			String num = parsearNumero(String.valueOf(calculadora.getNum1()));
+			calculadora.setNumActual(num);
+			calculadora.setNum2(0);
+			calculadora.setMostrar(true);
+			
+		}
+		else if (calculadora.getNum1() != 0 && !calculadora.getNumActual().isEmpty()) {
+			
+			calculadora.setNum2(Double.valueOf(calculadora.getNumActual()));
+			
+			// Siempre agregamos el resultado a num1
+			calculadora.setNum1(calculadora.calcular());
+			
+			// numActual pasa a valer el resultado (num1)
+			String num = parsearNumero(String.valueOf(calculadora.getNum1()));
+			calculadora.setNumActual(num);
+			
+			// Refrescamos el signo y la variable num2
+			calculadora.setOperacion("");
+			calculadora.setNum2(0);
+			
+			// Para que la funcion retroceder no pueda eliminar el texto del resultado y que se siga mostrando
+			calculadora.setMostrar(true);
+					
+		}
+		
+		textResultado.requestFocus();
+	}
+	
+	private void retroceder() {
+		
+		if (calculadora.getMostrar()) {
 			
 		}
 		else {
-			if (calculadora.getNumActual().equals("0")) calculadora.setNumActual("");
-			calculadora.concatenar(numero);
-			if (calculadora.getOperacion().equals("")) {
-				calculadora.setNum1(Double.valueOf(calculadora.getNumActual()));
+			
+			if (calculadora.getNumActual().length() == 1) calculadora.setNumActual("0");
+			else if (calculadora.getNumActual().length() > 1) {
+				calculadora.retroceder();
 			}
-			else calculadora.setNum2(Double.valueOf(calculadora.getNumActual()));
+			
+			// Retroceder un -5 su resultado es 0 y no -
+			if (calculadora.getNumActual().equals("-")) {
+				calculadora.setNumActual("0");
+			}
+			
+			textResultado.setText(imprimir());
+			textResultado.requestFocus();
 		}
 		
 	}
 	
-	private void asignarOperacion(String operacion){
-		
-	}
+	private void clear() { calculadora.reset(); }
 	
-	private void calcular(){}
+	private void clearError(){}
 	
 	private void raiz(){}
 	
-	private void inversa(){}
+	private void inversa(){
+		
+	}
 	
-	private void cambiarSigno(){}
-	
-	private void retroceder(){
-		calculadora.retroceder();
+	private void cambiarSigno() {
+		
+		// Si contiene el signo "-" -> eliminarlo
+		// else -> agregar signo "-"
+		// Al numero 0 no hay que asignarle nada
+		if (!calculadora.getNumActual().equals("0")) {
+			
+			if (!calculadora.getNumActual().contains("-")) {
+				calculadora.setNumActual("-" + calculadora.getNumActual());
+			}
+			else {
+				String numero = calculadora.getNumActual();
+				calculadora.setNumActual(numero.substring(1, numero.length()));
+			}
+			
+		}
+		
 	}
 	
 	private String imprimir() {
+		// 1234.32 -> 1.234,32
 		String aux = calculadora.getNumActual();
+		aux = aux.replace(".", ",");
 		String imprimir = "";
 		if (aux.length() > 3) {
 			
 			int x = 0;
+			boolean coma = false;
+			boolean contiene = aux.contains(",");
+			
 			for (int i = aux.length()-1; i >= 0; i--) {
 				imprimir = aux.charAt(i) + imprimir;
-				x++;
-				if (x == 3 && (i-1) >= 0){
+				if (contiene) {
+					if (coma) x++;
+				}
+				else x++;
+				if (aux.charAt(i) == ',') coma = true;
+				if (x == 3 && (i-1) >= 0 && aux.charAt(i-1) != '-') {
 					imprimir = '.' + imprimir;
 				}
 				if (x == 3) x = 0;
@@ -539,15 +802,49 @@ public class MenuPpal extends JFrame implements KeyListener {
 		return aux;
 	}
 	
-	private void clearError(){}
-	
-	private void clear(){}
-	
-	private void refrescarTextoResultado(){}
+	private String parsearNumero(String num) {
+		String aux = "";
+		num = num.replace(",", ".");
+		boolean start = false, coma = false;
+		for (int i = num.length()-1; i >= 0; i--) {
+			if (num.charAt(i) != '0' && num.charAt(i) != '.') start = true;
+			if (start) aux = num.charAt(i) + aux;
+			else if (!start && coma) aux = num.charAt(i) + aux;
+			if (num.charAt(i) == '.') coma = true;
+		}
+		return aux;
+	}
 	
 	@Override
-	public void keyPressed(KeyEvent arg0) {
+	public void keyPressed(KeyEvent e) {
 		
+		int key = e.getKeyCode();
+
+		switch (key) {
+
+		case KeyEvent.VK_0:	insertarNumero("0"); break;
+		case KeyEvent.VK_1:	insertarNumero("1"); break;
+		case KeyEvent.VK_2:	insertarNumero("2"); break;
+		case KeyEvent.VK_3:	insertarNumero("3"); break;
+		case KeyEvent.VK_4:	insertarNumero("4"); break;
+		case KeyEvent.VK_5:	insertarNumero("5"); break;
+		case KeyEvent.VK_6:	insertarNumero("6"); break;
+		case KeyEvent.VK_7:	insertarNumero("7"); break;
+		case KeyEvent.VK_8:	insertarNumero("8"); break;
+		case KeyEvent.VK_9:	insertarNumero("9"); break;
+
+		case KeyEvent.VK_NUMPAD0: insertarNumero("0"); break;
+		case KeyEvent.VK_NUMPAD1: insertarNumero("1"); break;
+		case KeyEvent.VK_NUMPAD2: insertarNumero("2"); break;
+		case KeyEvent.VK_NUMPAD3: insertarNumero("3"); break;
+		case KeyEvent.VK_NUMPAD4: insertarNumero("4"); break;
+		case KeyEvent.VK_NUMPAD5: insertarNumero("5"); break;
+		case KeyEvent.VK_NUMPAD6: insertarNumero("6"); break;
+		case KeyEvent.VK_NUMPAD7: insertarNumero("7"); break;
+		case KeyEvent.VK_NUMPAD8: insertarNumero("8"); break;
+		case KeyEvent.VK_NUMPAD9: insertarNumero("9"); break;
+		
+		}
 	}
 
 	@Override
