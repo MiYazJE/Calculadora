@@ -7,7 +7,8 @@ import javax.swing.*;
 import javax.swing.border.*;
 
 import dominio.Calculadora;
-import excepciones.DivisionPorCeroExcepcion;
+import excepciones.DivisionPorCeroException;
+import excepciones.RaizNegativaException;
 
 import javax.swing.GroupLayout.Alignment;
 
@@ -483,12 +484,20 @@ public class MenuPpal extends JFrame implements KeyListener {
 			}
 		});
 		
+		// clearError
+		button_ClearError.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				clearError();
+				textResultado.setText(imprimir());
+			}
+		});
+		
 		// dividir
 		button_Dividir.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					asignarOperacion("/");
-				} catch (DivisionPorCeroExcepcion e1) {
+				} catch (DivisionPorCeroException e1) {
 					textResultado.setText("No se puede dividir por 0");
 					clear();
 				}
@@ -500,7 +509,7 @@ public class MenuPpal extends JFrame implements KeyListener {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					asignarOperacion("+");
-				} catch (DivisionPorCeroExcepcion e1) {
+				} catch (DivisionPorCeroException e1) {
 				}
 			}
 		});
@@ -510,7 +519,7 @@ public class MenuPpal extends JFrame implements KeyListener {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					asignarOperacion("-");
-				} catch (DivisionPorCeroExcepcion e1) {
+				} catch (DivisionPorCeroException e1) {
 					
 				}
 			}
@@ -521,7 +530,7 @@ public class MenuPpal extends JFrame implements KeyListener {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					asignarOperacion("*");
-				} catch (DivisionPorCeroExcepcion e1) {
+				} catch (DivisionPorCeroException e1) {
 					
 				}
 			}
@@ -533,7 +542,7 @@ public class MenuPpal extends JFrame implements KeyListener {
 				try {
 					calcular();
 					textResultado.setText(imprimir());
-				} catch (DivisionPorCeroExcepcion e1) {
+				} catch (DivisionPorCeroException e1) {
 					textResultado.setText("No se puede dividir por 0");
 					clear();
 				}
@@ -555,6 +564,32 @@ public class MenuPpal extends JFrame implements KeyListener {
 			}
 		});
 		
+		// raiz
+		button_Raiz.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					raiz();
+					textResultado.setText(imprimir());
+				}
+				catch (RaizNegativaException exception) {
+					textResultado.setText("Entrada no válida");
+					clear();
+				}
+			}
+		});
+		
+		// porcentaje
+		button_Porcentaje.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					porcentaje();
+					textResultado.setText(imprimir());
+				} catch (DivisionPorCeroException e1) {
+					textResultado.setText("No se puede dividir por 0");
+				}
+			}
+		});
+		
 		
 	}
 	
@@ -563,13 +598,12 @@ public class MenuPpal extends JFrame implements KeyListener {
 	private void insertarNumero(String numero) {
 		
 		// Si despues de un calculo seguidamente introducimos un numero 
-		// no se concatena al resultado mostrado
-		// ej -> 1 + 2 = 3 (introduzco) 5 debe respetar 3 + 5
-		// Si no contemplo esto los numeros introducidos despues del resultado de una operacion
-		// se concatenan al resultado
-		if (calculadora.getMostrar() && calculadora.getNumActual().equals("0") && 
-			calculadora.getNum1() != 0) {
-			
+		// no sigue la cadena de operaciones anteriormente realizadas
+		// ej -> 1 + 2 = 3 (introduzco) 5  (clear()) reinicio todas las variables
+		// ej -> 1 + 2 + 3 -> 3 + 3 (introduzco) 5 -> 3 + 5 reemplazo el 3 por el 5 respetando las anteriores operaciones
+		if (calculadora.getMostrar() && !calculadora.getNumActual().equals("0")) {
+			if (calculadora.getNum1() != 0 ) calculadora.setNumActual("0");
+			else clear();
 			calculadora.setMostrar(false);
 		}
 		
@@ -618,10 +652,13 @@ public class MenuPpal extends JFrame implements KeyListener {
 		textResultado.requestFocus();
 	}
 	
-	private void asignarOperacion(String operacion) throws DivisionPorCeroExcepcion {
+	private void asignarOperacion(String operacion) throws DivisionPorCeroException {
 
-		if ((operacion.equals("-")) && calculadora.getNumActual().equals("0") && calculadora.getNum1() != 0) {
-			if (operacion.equals("-")) {
+		if ((operacion.equals("-")) && calculadora.getNumActual().equals("0")) {
+			if (calculadora.getOperacion().equals("-")) {
+				
+			}
+			else {
 				insertarNumero(operacion);
 				textResultado.setText(imprimir());
 			}
@@ -643,8 +680,6 @@ public class MenuPpal extends JFrame implements KeyListener {
 					calcular();
 					calculadora.setOperacion(operacion);
 					
-					String num = parsearNumero(String.valueOf(calculadora.getNum1()));
-					calculadora.setNumActual(num);
 					textResultado.setText(imprimir());
 					
 					calculadora.setNumActual("0");
@@ -665,14 +700,14 @@ public class MenuPpal extends JFrame implements KeyListener {
 			
 		}
 		
-		textResultado.requestFocus();
 	}
 	
-	private void calcular() throws DivisionPorCeroExcepcion {
+	private void calcular() throws DivisionPorCeroException {
 		 
 		// Si agregamos un numero y un operando hay que calcular
 		// ej -> 5 + = = = =    5 * = = = =    5 - = = = =      5 / = = = =  
 		// res ->  5 10 15 20     25 125 625     0 -5 -10 -15     1 0,2 0,04 0,008
+		// TODO calcular con 1 * =, 1 + =, 1 / =, 1 - = 
 		if (!calculadora.getOperacion().isEmpty() && calculadora.getNum1() != 0 && calculadora.getNumActual().isEmpty()) {
 			
 			switch (calculadora.getOperacion()) {
@@ -686,12 +721,12 @@ public class MenuPpal extends JFrame implements KeyListener {
 				calculadora.setNum1(calculadora.getNum1() * calculadora.getNum2());
 				break;
 			case "/":
-				if (calculadora.getNum1() == 0) throw new DivisionPorCeroExcepcion();
+				if (calculadora.getNum1() == 0) throw new DivisionPorCeroException();
 				calculadora.setNum1(calculadora.getNum1() / calculadora.getNum2());
 				break;
 			}
 			
-			String num = parsearNumero(String.valueOf(calculadora.getNum1()));
+			String num = parsearNumero(String.format("%.30f", calculadora.getNum1()));
 			calculadora.setNumActual(num);
 			calculadora.setNum2(0);
 			calculadora.setMostrar(true);
@@ -705,7 +740,7 @@ public class MenuPpal extends JFrame implements KeyListener {
 			calculadora.setNum1(calculadora.calcular());
 			
 			// numActual pasa a valer el resultado (num1)
-			String num = parsearNumero(String.valueOf(calculadora.getNum1()));
+			String num = parsearNumero(String.format("%.30f", calculadora.getNum1()));
 			calculadora.setNumActual(num);
 			
 			// Refrescamos el signo y la variable num2
@@ -717,12 +752,11 @@ public class MenuPpal extends JFrame implements KeyListener {
 					
 		}
 		
-		textResultado.requestFocus();
 	}
 	
 	private void retroceder() {
 		
-		if (calculadora.getMostrar()) {
+		if (calculadora.getMostrar()) { // Si acabamos de mostrar un resultado no dejar retroceder el numero por pantalla
 			
 		}
 		else {
@@ -738,47 +772,80 @@ public class MenuPpal extends JFrame implements KeyListener {
 			}
 			
 			textResultado.setText(imprimir());
-			textResultado.requestFocus();
 		}
 		
 	}
 	
 	private void clear() { calculadora.reset(); }
 	
-	private void clearError(){}
+	private void clearError() {
+		calculadora.setMostrar(false);
+		calculadora.setNumActual("0");
+	}
 	
-	private void raiz(){}
+	private void raiz() throws RaizNegativaException {
+		
+		if (calculadora.getNum1() == 0 && !calculadora.getNumActual().equals("0")) {
+			calculadora.setNum1(calculadora.raiz(calculadora.getNumActual()));
+			calculadora.setNumActual(parsearNumero(String.valueOf(calculadora.getNum1())));
+		}
+		else if (!calculadora.getOperacion().isEmpty() && !calculadora.getNumActual().equals("0")) {
+			calculadora.setNum2(calculadora.raiz(calculadora.getNumActual()));
+			calculadora.setNumActual(parsearNumero(String.valueOf(calculadora.getNum2())));
+		}
+			
+	}
 	
 	private void inversa(){
 		
 	}
 	
-	private void cambiarSigno() {
+	private void porcentaje() throws DivisionPorCeroException {
 		
-		// Si contiene el signo "-" -> eliminarlo
-		// else -> agregar signo "-"
-		// Al numero 0 no hay que asignarle nada
-		if (!calculadora.getNumActual().equals("0")) {
+		calculadora.porcentaje();
+		String numActual = String.format("%.30f", calculadora.getNum2());
+		calculadora.setNumActual(parsearNumero(numActual));
+		
+	}
+	
+	private void cambiarSigno() { 
+		
+		// Cambiar el signo de un resultado (calculadora.getMostrar())
+		if (calculadora.getMostrar()) {
 			
-			if (!calculadora.getNumActual().contains("-")) {
-				calculadora.setNumActual("-" + calculadora.getNumActual());
+			String numActualAux;
+			
+			if (calculadora.getNumActual().equals("0"))
+				numActualAux = parsearNumero(String.valueOf(calculadora.getNum1()));
+			else 
+				numActualAux = calculadora.getNumActual();
+				
+			if (numActualAux.contains("-")) {
+				calculadora.setNumActual(numActualAux.replaceAll("-", ""));
 			}
 			else {
-				String numero = calculadora.getNumActual();
-				calculadora.setNumActual(numero.substring(1, numero.length()));
+				numActualAux = "-".concat(numActualAux);
+				calculadora.setNumActual(numActualAux);
 			}
+			
+		}
+		else {
+			
+			// Al numero 0 no hay que asignarle nada(0 es positivo y negativo)
+			if (!calculadora.getNumActual().equals("0")) 
+				calculadora.cambiarSigno();
 			
 		}
 		
 	}
 	
+	// 1234.32 -> 1.234,32
 	private String imprimir() {
-		// 1234.32 -> 1.234,32
 		String aux = calculadora.getNumActual();
 		aux = aux.replace(".", ",");
-		String imprimir = "";
 		if (aux.length() > 3) {
 			
+			String imprimir = "";
 			int x = 0;
 			boolean coma = false;
 			boolean contiene = aux.contains(",");
@@ -802,6 +869,9 @@ public class MenuPpal extends JFrame implements KeyListener {
 		return aux;
 	}
 	
+	// Para que el numActual no recoja decimales innecesarios depues de un calculo 
+	// ej -> 5 + 5 = 10.0 -> 10
+	// ej -> 5.000 + 5.1 = 5.100 -> 5.1
 	private String parsearNumero(String num) {
 		String aux = "";
 		num = num.replace(",", ".");
