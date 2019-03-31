@@ -81,26 +81,36 @@ public class Calculadora {
 		return this.num1 * this.num2;
 	}
 	
-	public double dividir() throws DivisionPorCeroExcepcion {
-		if (this.num2 == 0) throw new DivisionPorCeroExcepcion();
+	public double dividir() throws DivisionPorCeroException {
+		if (this.num2 == 0) throw new DivisionPorCeroException();
 		return this.num1 / this.num2;
 	}
 	
 	public void porcentaje() {
-		
+		this.setNum2((Double.valueOf(numActual) / 100) * num1);
 	}
 	
-	public double raiz() {
-		return 0;
+	public double raiz (String num) throws RaizNegativaException {
+		return raiz(Double.valueOf(num));
 	}
 	
-	public double inversa() throws DivisionPorCeroExcepcion {
+	public double raiz(double num) throws RaizNegativaException {
+		if (num < 0) throw new RaizNegativaException();
+		return Math.sqrt(num);
+	}
+	
+	public double inversa() throws DivisionPorCeroException {
 		return 0;
 	}
 	
 	// CAMBIAR SIGNO
 	public void cambiarSigno() {
-		
+		// Si contiene el signo "-" -> eliminarlo
+		// sino -> agregar signo "-"
+		if (numActual.contains("-")) 
+			numActual = numActual.replace("-", "");
+		else 
+			numActual = "-".concat(numActual);
 	}
 	
 	// RESETEAR TODAS LAS VARIABLES
@@ -130,7 +140,7 @@ public class Calculadora {
 	
 	
 	// CALCULAR OPERACIONES
-	public double calcular() throws DivisionPorCeroExcepcion {
+	public double calcular() throws DivisionPorCeroException {
 		
 		switch (this.operacion) {
 		case "+": return sumar();
@@ -147,10 +157,5 @@ public class Calculadora {
 		return "num1 = " + num1 + "\nnum2 = " + num2 + "\noperacion = " + operacion + "\nnumActual = " + numActual
 				+ "\nnumMemoria = " + numMemoria;
 	}
-	
-	
-	
-	
-	
 	
 }
