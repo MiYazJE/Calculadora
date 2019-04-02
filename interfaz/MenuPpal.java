@@ -1,5 +1,9 @@
 package interfaz;
 
+/**
+ * @author Rubén Saiz Serrano
+ */
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.EventQueue;
