@@ -1,7 +1,7 @@
 package dominio; 
 
 /**
- * @author Rubén Saiz Serrano
+ * @author Ruben Saiz Serrano
  */
 
 import excepciones.*;
