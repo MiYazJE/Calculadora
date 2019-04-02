@@ -114,14 +114,14 @@ public class MenuPpal extends JFrame implements KeyListener, Errores {
 		JMenuItem mntmSalir = new JMenuItem("Salir");
 		mnArchivos.add(mntmSalir);
 		
-		JMenu mnEdici髇 = new JMenu("Edici\u00F3n");
-		menuBar.add(mnEdici髇);
+		JMenu mnEdici贸n = new JMenu("Edici\u00F3n");
+		menuBar.add(mnEdici贸n);
 		
 		JMenuItem mntmCopiar = new JMenuItem("Copiar");
-		mnEdici髇.add(mntmCopiar);
+		mnEdici贸n.add(mntmCopiar);
 		
 		JMenuItem mntmPegar = new JMenuItem("Pegar");
-		mnEdici髇.add(mntmPegar);
+		mnEdici贸n.add(mntmPegar);
 		
 		JMenu mnAyuda = new JMenu("Ayuda");
 		menuBar.add(mnAyuda);
@@ -1154,6 +1154,6 @@ public class MenuPpal extends JFrame implements KeyListener, Errores {
 		case 11: return "Diciembre"; 
 		}
 		return "";
-	}
+	} 
 	
 }
