@@ -1,7 +1,7 @@
 package interfaz;
 
 /**
- * @author Rubén Saiz Serrano
+ * @author Ruben Saiz Serrano
  */
 
 import java.awt.BorderLayout;
