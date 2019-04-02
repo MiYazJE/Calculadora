@@ -1,6 +1,9 @@
 package dominio;
 
+import java.security.DigestException;
+
 import excepciones.*;
+import interfaces.Errores;
 
 public class Calculadora {
 
@@ -17,6 +20,7 @@ public class Calculadora {
 	// CONSTRUCTOR
 	public Calculadora() {
 		reset();
+		numMemoria = "";
 	}
 
 	// GETTERS AND SETTERS
@@ -100,7 +104,25 @@ public class Calculadora {
 	}
 	
 	public double inversa() throws DivisionPorCeroException {
-		return 0;
+		
+		if (num1 == 0 && numActual.equals("-")) return -1;
+		
+		if (num1 != 0) {
+			
+			if (numActual.equals("0")) 
+				return 1 / num1;
+			else 
+				return 1 / Double.valueOf(numActual);
+			
+		}
+		else {
+			
+			if (!numActual.equals("0")) 
+				return 1 / Double.valueOf(numActual);
+			else 
+				throw new DivisionPorCeroException();
+		}
+		
 	}
 	
 	// CAMBIAR SIGNO
@@ -116,9 +138,9 @@ public class Calculadora {
 	// RESETEAR TODAS LAS VARIABLES
 	public void reset() {
 		num1 = num2 = 0;
-		operacion = numMemoria = "";
+		operacion = "";
 		numActual = "0";
-		mostrar = false;
+		mostrar   = false;
 	}
 	
 	// CONCATENAR NUMERO AL NUMERO ACTUAL
@@ -130,12 +152,26 @@ public class Calculadora {
 		numActual = numActual.substring(0, numActual.length()-1);
 	}
 	
-	public void sumarMemoria() {
+	public double sumarMemoria() {
 		
+		if (num1 != 0) {
+			return Double.valueOf(numMemoria) + num1;
+		}
+		else if (!numActual.equals("-")) 
+			return Double.valueOf(numMemoria) + Double.valueOf(numActual);
+		
+		return 0;
 	}
 	
-	public void restarMemoria() {
+	public double restarMemoria() {
 		
+		if (num1 != 0) {
+			return Double.valueOf(numMemoria) - num1;
+		}
+		else if (!numActual.equals("-")) 
+			return Double.valueOf(numMemoria) - Double.valueOf(numActual);
+		
+		return 0;
 	}
 	
 	
