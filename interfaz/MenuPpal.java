@@ -890,6 +890,8 @@ public class MenuPpal extends JFrame implements KeyListener, Errores {
 	
 	private void retroceder() {
 		
+		cambiarEstadoBotones(true);
+		
 		if (calculadora.getMostrar()) { // Si acabamos de mostrar un resultado no dejar retroceder el numero por pantalla
 			
 		}
