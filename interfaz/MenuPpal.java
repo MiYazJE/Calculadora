@@ -114,14 +114,14 @@ public class MenuPpal extends JFrame implements KeyListener, Errores {
 		JMenuItem mntmSalir = new JMenuItem("Salir");
 		mnArchivos.add(mntmSalir);
 		
-		JMenu mnEdición = new JMenu("Edici\u00F3n");
-		menuBar.add(mnEdición);
+		JMenu mnEdicion = new JMenu("Edici\u00F3n");
+		menuBar.add(mnEdicion);
 		
 		JMenuItem mntmCopiar = new JMenuItem("Copiar");
-		mnEdición.add(mntmCopiar);
+		mnEdicion.add(mntmCopiar);
 		
 		JMenuItem mntmPegar = new JMenuItem("Pegar");
-		mnEdición.add(mntmPegar);
+		mnEdicion.add(mntmPegar);
 		
 		JMenu mnAyuda = new JMenu("Ayuda");
 		menuBar.add(mnAyuda);
