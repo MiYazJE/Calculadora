@@ -1,6 +1,8 @@
 package dominio; 
 
-import java.security.DigestException;
+/**
+ * @author Rubén Saiz Serrano
+ */
 
 import excepciones.*;
 import interfaces.Errores;
